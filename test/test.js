@@ -49,3 +49,69 @@ test['empty environment should return undefined'] = function (test) {
         name: 'not-used'
     });
 };
+
+test['environment lookup should return value, or undefined'] = function (test) {
+    test.expect(2);
+    var sponsor = tart.sponsor();
+    var env = lambda.env(sponsor);
+
+    var value = 42;
+    var expectValue = sponsor(function (result) {
+        test.equal(result, value);
+        doneCountdown();
+    });
+    var expectUndefined = sponsor(function (result) {
+        test.equal(result, undefined);
+        doneCountdown();
+    });
+    var environment = env.bind('foo', value, env.empty);
+    environment({
+        customer: expectUndefined,
+        name: 'bar'
+    });
+    environment({
+        customer: expectValue,
+        name: 'foo'
+    });
+    
+    var doneExpected = 2;
+    var doneCountdown = function () {
+        if (--doneExpected <= 0) {
+            test.done();
+        }
+    };
+};
+
+test['variable evaluation should return value, or undefined'] = function (test) {
+    test.expect(2);
+    var sponsor = tart.sponsor();
+    var env = lambda.env(sponsor);
+
+    var value = 42;
+    var expectValue = sponsor(function (result) {
+        test.equal(result, value);
+        doneCountdown();
+    });
+    var expectUndefined = sponsor(function (result) {
+        test.equal(result, undefined);
+        doneCountdown();
+    });
+    var environment = env.bind('x', value, env.empty);
+    var variableX = env.variable('x');
+    var variableY = env.variable('y');
+    variableY({
+        customer: expectUndefined,
+        environment: environment
+    });
+    variableX({
+        customer: expectValue,
+        environment: environment
+    });
+    
+    var doneExpected = 2;
+    var doneCountdown = function () {
+        if (--doneExpected <= 0) {
+            test.done();
+        }
+    };
+};
