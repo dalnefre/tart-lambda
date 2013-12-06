@@ -36,9 +36,13 @@ var lambda = require('../index.js');
 var sponsor = tart.sponsor();
 var env = lambda.env(sponsor);
 
-env.empty({
-    customer: sponsor(function (result) {
-        console.log('empty environment returned:', result);
-    }),
-    name: 'not-used'
+var xVariable = env.variable('x');
+var identityFunction = env.lambda('x', xVariable);
+var testApplication = env.apply(identityFunction, env.constant(42));
+
+testApplication({
+	environment: env.empty,
+	customer: sponsor(function (result) {
+        console.log('result:', result);
+    })
 });

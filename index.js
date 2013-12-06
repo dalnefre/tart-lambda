@@ -59,8 +59,58 @@ lambda.env = function env(sponsor) {
     var varExpr = function (name) {
         return function varExprBeh(message) {
             message.environment({
-                customer: message.customer,
-                name: name
+                name: name,
+                customer: message.customer
+            });
+        };
+    };
+
+    var constant = function constant(value) {
+        return sponsor(function contantBeh(message) {
+            message.customer(value);
+        });
+    };
+
+    var lambda = function lambda(name, body) {
+        return sponsor(lambdaExpr(name, body));
+    };
+
+    var closure = function closure(name, body, environment) {
+        return sponsor(function(message) {
+            body({
+                environment: bind(name, message.value, environment),
+                customer: message.customer
+            });
+        });
+    };
+
+    var lambdaExpr = function (name, body) {
+        return function lambdaExprBeh(message) {
+            message.customer(
+                closure(name, body, message.environment));
+        };
+    };
+
+    var application = function application(funExpr, argExpr) {
+        return sponsor(applyExpr(funExpr, argExpr));
+    };
+
+    var applyExpr = function (funExpr, argExpr) {
+        return function applyExprBeh(message) {
+            var cust = message.customer;
+            funExpr({
+                environment: message.environment,
+                customer: function (fun) {
+                    argExpr({
+                        environment: message.environment,
+                        customer: function (arg) {
+                            fun({
+                                value: arg,
+                                customer: cust
+                            });
+                        }
+                    });
+                }
             });
         };
     };
@@ -68,6 +118,9 @@ lambda.env = function env(sponsor) {
     return {
         bind: bind,
         variable: variable,
+        constant: constant,
+        lambda: lambda,
+        apply: application,
         empty: sponsor(emptyEnvBeh)
     };
 };
