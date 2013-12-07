@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "A simple lambda-calculus evaluator (tart module)",
   "scripts": {
+    "inject-examples": "node scripts/injectExamples.js",
     "readme": "node examples/readme.js",
     "test": "node scripts/test.js"
   },
