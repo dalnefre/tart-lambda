@@ -115,3 +115,23 @@ test['variable evaluation should return value, or undefined'] = function (test) 
         }
     };
 };
+
+test['identity function definition and application returns 42'] = function (test) {
+    test.expect(1);
+    var sponsor = tart.sponsor();
+    var env = lambda.env(sponsor);
+
+    var xVariable = env.variable('x');
+    var identityFunction = env.lambda('x', xVariable);
+    var constant42 = env.constant(42);
+    var testApplication = env.apply(identityFunction, constant42);
+
+    var expect42 = sponsor(function (result) {
+        test.equal(result, 42);
+        test.done();
+    });
+    testApplication({
+        environment: env.empty,
+        customer: expect42
+    });
+};
