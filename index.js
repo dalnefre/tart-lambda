@@ -32,95 +32,97 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var lambda = module.exports;
 
+lambda.emptyEnvBeh = function emptyEnvBeh(message) {
+    message.customer(undefined);
+};
+
+lambda.boundEnv = function (name, value, env) {
+    return function boundEnvBeh(message) {
+        if (message.name === name) {
+            message.customer(value);
+        } else {
+            env(message);
+        }
+    };
+};
+
+lambda.varExpr = function (name) {
+    return function varExprBeh(message) {
+        message.environment({
+            name: name,
+            customer: message.customer
+        });
+    };
+};
+
+lambda.constantExpr = function (value) {
+    return function contantBeh(message) {
+        message.customer(value);
+    };
+};
+
+lambda.lambdaExpr = function (name, bodyExpr) {
+    return function lambdaExprBeh(message) {
+        var lexical = message.environment;
+        var closure = this.sponsor(function closureBeh(message) {
+            var value = message.value;
+            bodyExpr({
+                environment: this.sponsor(lambda.boundEnv(name, value, lexical)),
+                customer: message.customer
+            });
+        });
+        message.customer(closure);
+    };
+};
+
+lambda.applyExpr = function (funExpr, argExpr) {
+    return function applyExprBeh(message) {
+        var cust = message.customer;
+        funExpr({
+            environment: message.environment,
+            customer: function (fun) {
+                argExpr({
+                    environment: message.environment,
+                    customer: function (arg) {
+                        fun({
+                            value: arg,
+                            customer: cust
+                        });
+                    }
+                });
+            }
+        });
+    };
+};
+
 lambda.env = function env(sponsor) {
 
-    var emptyEnvBeh = function emptyEnvBeh(message) {
-        message.customer(undefined);
-    };
-
     var bind = function bind(name, value, env) {
-        return sponsor(boundEnv(name, value, env));
-    };
-
-    var boundEnv = function (name, value, env) {
-        return function boundEnvBeh(message) {
-            if (message.name === name) {
-                message.customer(value);
-            } else {
-                env(message);
-            }
-        };
+        return sponsor(lambda.boundEnv(name, value, env));
     };
 
     var variable = function variable(name) {
-        return sponsor(varExpr(name));
-    };
-
-    var varExpr = function (name) {
-        return function varExprBeh(message) {
-            message.environment({
-                name: name,
-                customer: message.customer
-            });
-        };
+        return sponsor(lambda.varExpr(name));
     };
 
     var constant = function constant(value) {
-        return sponsor(function contantBeh(message) {
-            message.customer(value);
-        });
+        return sponsor(lambda.constantExpr(value));
     };
 
-    var lambda = function lambda(name, body) {
-        return sponsor(lambdaExpr(name, body));
-    };
-
-    var closure = function closure(name, body, environment) {
-        return sponsor(function(message) {
-            body({
-                environment: bind(name, message.value, environment),
-                customer: message.customer
-            });
-        });
-    };
-
-    var lambdaExpr = function (name, body) {
-        return function lambdaExprBeh(message) {
-            message.customer(
-                closure(name, body, message.environment));
-        };
+    var abstraction = function abstraction(name, body) {
+        return sponsor(lambda.lambdaExpr(name, body));
     };
 
     var application = function application(funExpr, argExpr) {
-        return sponsor(applyExpr(funExpr, argExpr));
-    };
-
-    var applyExpr = function (funExpr, argExpr) {
-        return function applyExprBeh(message) {
-            var cust = message.customer;
-            funExpr({
-                environment: message.environment,
-                customer: function (fun) {
-                    argExpr({
-                        environment: message.environment,
-                        customer: function (arg) {
-                            fun({
-                                value: arg,
-                                customer: cust
-                            });
-                        }
-                    });
-                }
-            });
-        };
+        return sponsor(lambda.applyExpr(funExpr, argExpr));
     };
 
     return {
         bind: bind,
         variable: variable,
         constant: constant,
-        lambda: lambda,
+        lambda: abstraction,
         apply: application,
-        empty: sponsor(emptyEnvBeh)
+        empty: sponsor(lambda.emptyEnvBeh)
     };
 };
