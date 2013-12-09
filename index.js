@@ -46,8 +46,8 @@ lambda.boundEnv = function (name, value, env) {
     };
 };
 
-lambda.varExpr = function (name) {
-    return function varExprBeh(message) {
+lambda.variableExpr = function (name) {
+    return function variableExprBeh(message) {
         message.environment({
             name: name,
             customer: message.customer
@@ -102,7 +102,7 @@ lambda.env = function env(sponsor) {
     };
 
     var variable = function variable(name) {
-        return sponsor(lambda.varExpr(name));
+        return sponsor(lambda.variableExpr(name));
     };
 
     var constant = function constant(value) {

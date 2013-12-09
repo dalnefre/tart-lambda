@@ -34,15 +34,16 @@ var tart = require('tart');
 var lambda = require('../index.js');
 
 var sponsor = tart.sponsor();
-var env = lambda.env(sponsor);
 
-var xVariable = env.variable('x');
-var identityFunction = env.lambda('x', xVariable);
-var testApplication = env.apply(identityFunction, env.constant(42));
+var emptyEnv = sponsor(lambda.emptyEnvBeh);
+var xVariable = sponsor(lambda.variableExpr('x'));
+var identityFunction = sponsor(lambda.lambdaExpr('x', xVariable));
+var constant42 = sponsor(lambda.constantExpr(42));
+var testApplication = sponsor(lambda.applyExpr(identityFunction, constant42));
 
 testApplication({
-	environment: env.empty,
-	customer: sponsor(function (result) {
+    environment: emptyEnv,
+    customer: sponsor(function (result) {
         console.log('result:', result);
     })
 });
