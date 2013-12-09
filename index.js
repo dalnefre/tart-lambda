@@ -94,35 +94,3 @@ lambda.applyExpr = function (funExpr, argExpr) {
         });
     };
 };
-
-lambda.kit = function kit(sponsor) {
-
-    var bind = function bind(name, value, env) {
-        return sponsor(lambda.boundEnv(name, value, env));
-    };
-
-    var variable = function variable(name) {
-        return sponsor(lambda.variableExpr(name));
-    };
-
-    var constant = function constant(value) {
-        return sponsor(lambda.constantExpr(value));
-    };
-
-    var abstraction = function abstraction(name, body) {
-        return sponsor(lambda.lambdaExpr(name, body));
-    };
-
-    var application = function application(funExpr, argExpr) {
-        return sponsor(lambda.applyExpr(funExpr, argExpr));
-    };
-
-    return {
-        bind: bind,
-        variable: variable,
-        constant: constant,
-        lambda: abstraction,
-        apply: application,
-        empty: sponsor(lambda.emptyEnvBeh)
-    };
-};
