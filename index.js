@@ -95,7 +95,7 @@ lambda.applyExpr = function (funExpr, argExpr) {
     };
 };
 
-lambda.env = function env(sponsor) {
+lambda.kit = function kit(sponsor) {
 
     var bind = function bind(name, value, env) {
         return sponsor(lambda.boundEnv(name, value, env));

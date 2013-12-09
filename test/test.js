@@ -38,13 +38,14 @@ var test = module.exports = {};
 test['empty environment should return undefined'] = function (test) {
     test.expect(1);
     var sponsor = tart.sponsor();
-    var env = lambda.env(sponsor);
+
+    var emptyEnv = sponsor(lambda.emptyEnvBeh);
 
     var expectUndefined = sponsor(function (result) {
         test.equal(result, undefined);
         test.done();
     });
-    env.empty({
+    emptyEnv({
         customer: expectUndefined,
         name: 'not-used'
     });
@@ -53,21 +54,23 @@ test['empty environment should return undefined'] = function (test) {
 test['environment lookup should return value, or undefined'] = function (test) {
     test.expect(2);
     var sponsor = tart.sponsor();
-    var env = lambda.env(sponsor);
 
+    var emptyEnv = sponsor(lambda.emptyEnvBeh);
     var value = 42;
-    var expectValue = sponsor(function (result) {
-        test.equal(result, value);
-        doneCountdown();
-    });
+    var environment = sponsor(lambda.boundEnv('foo', value, emptyEnv));
+
     var expectUndefined = sponsor(function (result) {
         test.equal(result, undefined);
         doneCountdown();
     });
-    var environment = env.bind('foo', value, env.empty);
     environment({
         customer: expectUndefined,
         name: 'bar'
+    });
+
+    var expectValue = sponsor(function (result) {
+        test.equal(result, value);
+        doneCountdown();
     });
     environment({
         customer: expectValue,
@@ -85,29 +88,31 @@ test['environment lookup should return value, or undefined'] = function (test) {
 test['variable evaluation should return value, or undefined'] = function (test) {
     test.expect(2);
     var sponsor = tart.sponsor();
-    var env = lambda.env(sponsor);
 
+    var emptyEnv = sponsor(lambda.emptyEnvBeh);
     var value = 42;
+    var environment = sponsor(lambda.boundEnv('x', value, emptyEnv));
+    var xVariable = sponsor(lambda.variableExpr('x'));
+    var yVariable = sponsor(lambda.variableExpr('y'));
+
     var expectValue = sponsor(function (result) {
         test.equal(result, value);
         doneCountdown();
     });
-    var expectUndefined = sponsor(function (result) {
-        test.equal(result, undefined);
-        doneCountdown();
-    });
-    var environment = env.bind('x', value, env.empty);
-    var variableX = env.variable('x');
-    var variableY = env.variable('y');
-    variableY({
-        customer: expectUndefined,
-        environment: environment
-    });
-    variableX({
+    xVariable({
         customer: expectValue,
         environment: environment
     });
     
+    var expectUndefined = sponsor(function (result) {
+        test.equal(result, undefined);
+        doneCountdown();
+    });
+    yVariable({
+        customer: expectUndefined,
+        environment: environment
+    });
+
     var doneExpected = 2;
     var doneCountdown = function () {
         if (--doneExpected <= 0) {
@@ -119,19 +124,19 @@ test['variable evaluation should return value, or undefined'] = function (test) 
 test['identity function definition and application returns 42'] = function (test) {
     test.expect(1);
     var sponsor = tart.sponsor();
-    var env = lambda.env(sponsor);
 
-    var xVariable = env.variable('x');
-    var identityFunction = env.lambda('x', xVariable);
-    var constant42 = env.constant(42);
-    var testApplication = env.apply(identityFunction, constant42);
+    var emptyEnv = sponsor(lambda.emptyEnvBeh);
+    var xVariable = sponsor(lambda.variableExpr('x'));
+    var identityFunction = sponsor(lambda.lambdaExpr('x', xVariable));
+    var constant42 = sponsor(lambda.constantExpr(42));
+    var testApplication = sponsor(lambda.applyExpr(identityFunction, constant42));
 
     var expect42 = sponsor(function (result) {
         test.equal(result, 42);
         test.done();
     });
     testApplication({
-        environment: env.empty,
+        environment: emptyEnv,
         customer: expect42
     });
 };
