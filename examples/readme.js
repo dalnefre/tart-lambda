@@ -33,7 +33,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 var tart = require('tart');
 var lambda = require('../index.js');
 
-var sponsor = tart.sponsor();
+var sponsor = tart.minimal();
 
 var emptyEnv = sponsor(lambda.emptyEnvBeh);
 var xVariable = sponsor(lambda.variableExpr('x'));

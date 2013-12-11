@@ -37,7 +37,7 @@ var test = module.exports = {};
 
 test['empty environment should return undefined'] = function (test) {
     test.expect(1);
-    var sponsor = tart.sponsor();
+    var sponsor = tart.minimal();
 
     var emptyEnv = sponsor(lambda.emptyEnvBeh);
 
@@ -53,7 +53,7 @@ test['empty environment should return undefined'] = function (test) {
 
 test['environment lookup should return value, or undefined'] = function (test) {
     test.expect(2);
-    var sponsor = tart.sponsor();
+    var sponsor = tart.minimal();
 
     var emptyEnv = sponsor(lambda.emptyEnvBeh);
     var value = 42;
@@ -87,7 +87,7 @@ test['environment lookup should return value, or undefined'] = function (test) {
 
 test['variable evaluation should return value, or undefined'] = function (test) {
     test.expect(2);
-    var sponsor = tart.sponsor();
+    var sponsor = tart.minimal();
 
     var emptyEnv = sponsor(lambda.emptyEnvBeh);
     var value = 42;
@@ -123,7 +123,7 @@ test['variable evaluation should return value, or undefined'] = function (test) 
 
 test['identity function definition and application returns 42'] = function (test) {
     test.expect(1);
-    var sponsor = tart.sponsor();
+    var sponsor = tart.minimal();
 
     var emptyEnv = sponsor(lambda.emptyEnvBeh);
     var xVariable = sponsor(lambda.variableExpr('x'));
