@@ -30,30 +30,34 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 "use strict";
 
-var tart = require('tart');
+var tart = require('tart-tracing');
 var lambda = require('../index.js');
 
 var test = module.exports = {};   
 
 test['empty environment should return undefined'] = function (test) {
-    test.expect(1);
-    var sponsor = tart.minimal();
+    test.expect(2);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
 
     var emptyEnv = sponsor(lambda.emptyEnvBeh);
 
     var expectUndefined = sponsor(function (result) {
         test.equal(result, undefined);
-        test.done();
     });
     emptyEnv({
         customer: expectUndefined,
         name: 'not-used'
     });
+    
+    test.ok(tracing.eventLoop());
+    test.done();
 };
 
 test['environment lookup should return value, or undefined'] = function (test) {
-    test.expect(2);
-    var sponsor = tart.minimal();
+    test.expect(3);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
 
     var emptyEnv = sponsor(lambda.emptyEnvBeh);
     var value = 42;
@@ -61,7 +65,6 @@ test['environment lookup should return value, or undefined'] = function (test) {
 
     var expectUndefined = sponsor(function (result) {
         test.equal(result, undefined);
-        doneCountdown();
     });
     environment({
         customer: expectUndefined,
@@ -70,24 +73,20 @@ test['environment lookup should return value, or undefined'] = function (test) {
 
     var expectValue = sponsor(function (result) {
         test.equal(result, value);
-        doneCountdown();
     });
     environment({
         customer: expectValue,
         name: 'foo'
     });
     
-    var doneExpected = 2;
-    var doneCountdown = function () {
-        if (--doneExpected <= 0) {
-            test.done();
-        }
-    };
+    test.ok(tracing.eventLoop());
+    test.done();
 };
 
 test['variable evaluation should return value, or undefined'] = function (test) {
-    test.expect(2);
-    var sponsor = tart.minimal();
+    test.expect(3);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
 
     var emptyEnv = sponsor(lambda.emptyEnvBeh);
     var value = 42;
@@ -97,7 +96,6 @@ test['variable evaluation should return value, or undefined'] = function (test) 
 
     var expectValue = sponsor(function (result) {
         test.equal(result, value);
-        doneCountdown();
     });
     xVariable({
         customer: expectValue,
@@ -106,24 +104,20 @@ test['variable evaluation should return value, or undefined'] = function (test) 
     
     var expectUndefined = sponsor(function (result) {
         test.equal(result, undefined);
-        doneCountdown();
     });
     yVariable({
         customer: expectUndefined,
         environment: environment
     });
 
-    var doneExpected = 2;
-    var doneCountdown = function () {
-        if (--doneExpected <= 0) {
-            test.done();
-        }
-    };
+    test.ok(tracing.eventLoop());
+    test.done();
 };
 
 test['identity function definition and application returns 42'] = function (test) {
-    test.expect(1);
-    var sponsor = tart.minimal();
+    test.expect(2);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
 
     var emptyEnv = sponsor(lambda.emptyEnvBeh);
     var xVariable = sponsor(lambda.variableExpr('x'));
@@ -133,10 +127,12 @@ test['identity function definition and application returns 42'] = function (test
 
     var expect42 = sponsor(function (result) {
         test.equal(result, 42);
-        test.done();
     });
     testApplication({
         environment: emptyEnv,
         customer: expect42
     });
+    
+    test.ok(tracing.eventLoop());
+    test.done();
 };
